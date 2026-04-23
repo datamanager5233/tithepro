@@ -1,0 +1,1880 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TithePro — Church Finance Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ===== VARIABLES ===== */
+:root {
+  --gold: #C8972B;
+  --gold-light: #E8B84B;
+  --gold-dim: #7A5C1A;
+  --dark: #0F0E0A;
+  --dark-2: #1A1914;
+  --dark-3: #222118;
+  --dark-4: #2E2C22;
+  --dark-5: #3A382E;
+  --text: #F0EDE4;
+  --text-muted: #8A8778;
+  --text-dim: #5A584E;
+  --green: #3DAA6E;
+  --blue: #3B82C4;
+  --purple: #7C5CBF;
+  --red: #C4483B;
+  --border: rgba(200,151,43,0.2);
+  --border-subtle: rgba(255,255,255,0.06);
+  --shadow: 0 8px 32px rgba(0,0,0,0.5);
+  --radius: 12px;
+  --radius-sm: 8px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { font-size: 15px; scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--dark);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ===== LOGIN ===== */
+.login-screen {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  z-index: 1000;
+  background: var(--dark);
+}
+.login-screen.hidden { display: none; }
+
+.login-bg {
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(200,151,43,0.12) 0%, transparent 70%);
+  pointer-events: none;
+}
+.cross-motif {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 800px; height: 800px; opacity: 0.03;
+  background: 
+    linear-gradient(90deg, transparent 46%, white 46%, white 54%, transparent 54%),
+    linear-gradient(0deg, transparent 35%, white 35%, white 65%, transparent 65%);
+  border-radius: 50%;
+}
+
+.login-card {
+  background: var(--dark-2);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 48px 40px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow), 0 0 80px rgba(200,151,43,0.06);
+  position: relative;
+  animation: slideUp 0.5s ease;
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.login-logo { text-align: center; margin-bottom: 36px; }
+.logo-icon {
+  font-size: 2.5rem;
+  color: var(--gold);
+  display: block;
+  margin-bottom: 8px;
+  text-shadow: 0 0 24px rgba(200,151,43,0.5);
+}
+.login-logo h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 0.02em;
+}
+.login-logo p { color: var(--text-muted); font-size: 0.85rem; margin-top: 4px; }
+
+.login-form { display: flex; flex-direction: column; gap: 16px; }
+.login-error { background: rgba(196,72,59,0.15); border: 1px solid rgba(196,72,59,0.4); color: #F07070; padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.85rem; }
+.login-footer { text-align: center; margin-top: 24px; color: var(--text-dim); font-size: 0.78rem; }
+
+/* ===== APP LAYOUT ===== */
+.app { display: flex; min-height: 100vh; }
+.app.hidden { display: none; }
+
+/* ===== SIDEBAR ===== */
+.sidebar {
+  width: 220px;
+  background: var(--dark-2);
+  border-right: 1px solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0; left: 0; bottom: 0;
+  z-index: 100;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-logo {
+  display: flex; align-items: center; gap: 10px;
+  padding: 20px 20px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.logo-icon-sm {
+  font-size: 1.2rem; color: var(--gold);
+  text-shadow: 0 0 12px rgba(200,151,43,0.5);
+}
+.sidebar-logo span { font-family: 'Playfair Display', serif; font-size: 1.1rem; color: var(--gold); font-weight: 700; }
+
+.sidebar-nav { flex: 1; padding: 12px 10px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+.nav-item:hover { background: var(--dark-4); color: var(--text); }
+.nav-item.active { background: rgba(200,151,43,0.12); color: var(--gold); }
+.nav-icon { font-size: 0.9rem; width: 18px; text-align: center; }
+
+.sidebar-footer { padding: 16px 10px; border-top: 1px solid var(--border-subtle); }
+.btn-logout {
+  width: 100%; padding: 9px; border-radius: var(--radius-sm);
+  background: none; border: 1px solid var(--border-subtle);
+  color: var(--text-muted); cursor: pointer; font-size: 0.85rem;
+  transition: all 0.2s;
+}
+.btn-logout:hover { background: rgba(196,72,59,0.1); color: #F07070; border-color: rgba(196,72,59,0.3); }
+
+/* ===== MAIN CONTENT ===== */
+.main-content {
+  margin-left: 220px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+}
+
+.top-bar {
+  height: 56px;
+  background: var(--dark-2);
+  border-bottom: 1px solid var(--border-subtle);
+  display: flex; align-items: center;
+  padding: 0 24px;
+  gap: 16px;
+  position: sticky; top: 0;
+  z-index: 50;
+}
+.menu-toggle { display: none; background: none; border: none; color: var(--text); font-size: 1.2rem; cursor: pointer; }
+.top-bar-title { font-family: 'Playfair Display', serif; font-size: 1rem; font-weight: 600; flex: 1; }
+.top-bar-right { display: flex; align-items: center; gap: 12px; }
+.live-badge { font-size: 0.72rem; color: var(--green); font-weight: 600; letter-spacing: 0.05em; }
+.admin-badge { font-size: 0.75rem; background: rgba(200,151,43,0.15); color: var(--gold); padding: 3px 10px; border-radius: 20px; font-weight: 600; }
+
+/* ===== SECTIONS ===== */
+.section { padding: 28px 28px; display: none; }
+.section.active { display: block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+  margin-bottom: 24px;
+}
+.section-header h2 { font-family: 'Playfair Display', serif; font-size: 1.5rem; font-weight: 700; }
+.section-desc { color: var(--text-muted); font-size: 0.875rem; margin-top: 2px; }
+.header-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+/* ===== KPI CARDS ===== */
+.kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+
+.kpi-card {
+  background: var(--dark-2);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  padding: 20px 22px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s;
+}
+.kpi-card::before {
+  content: ''; position: absolute;
+  top: 0; left: 0; right: 0; height: 3px;
+}
+.kpi-card.gold::before { background: linear-gradient(90deg, var(--gold), var(--gold-light)); }
+.kpi-card.blue::before { background: linear-gradient(90deg, var(--blue), #60a5f4); }
+.kpi-card.green::before { background: linear-gradient(90deg, var(--green), #5eead4); }
+.kpi-card.purple::before { background: linear-gradient(90deg, var(--purple), #a78bfa); }
+
+.kpi-label { font-size: 0.78rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 8px; }
+.kpi-value { font-family: 'Playfair Display', serif; font-size: 1.6rem; font-weight: 700; margin-bottom: 4px; }
+.kpi-card.gold .kpi-value { color: var(--gold-light); }
+.kpi-card.blue .kpi-value { color: #60a5f4; }
+.kpi-card.green .kpi-value { color: #5eead4; }
+.kpi-card.purple .kpi-value { color: #a78bfa; }
+.kpi-sub { font-size: 0.78rem; color: var(--text-dim); }
+
+/* ===== CHARTS ===== */
+.charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 16px; margin-bottom: 24px; }
+.chart-card {
+  background: var(--dark-2); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius); padding: 20px;
+}
+.chart-header { margin-bottom: 16px; }
+.chart-header h3 { font-size: 0.9rem; font-weight: 600; color: var(--text); }
+
+.donut-legend { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; }
+.legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; }
+.legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+/* ===== BREAKDOWN ===== */
+.breakdown-row { display: grid; grid-template-columns: 1.5fr 1fr 1fr; gap: 16px; }
+.breakdown-card {
+  background: var(--dark-2); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius); padding: 20px;
+}
+.breakdown-card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 16px; }
+.breakdown-grid { display: flex; flex-direction: column; gap: 14px; }
+.breakdown-item {}
+.b-label { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 5px; display: flex; justify-content: space-between; }
+.b-bar { height: 6px; background: var(--dark-4); border-radius: 4px; margin-bottom: 4px; }
+.b-fill { height: 100%; border-radius: 4px; background: var(--gold); }
+.breakdown-item.offertory .b-fill { background: var(--blue); }
+.breakdown-item.building .b-fill { background: var(--green); }
+.breakdown-item.donation .b-fill { background: var(--purple); }
+.b-amount { font-size: 0.85rem; font-weight: 600; font-family: 'DM Mono', monospace; }
+
+.top-list { display: flex; flex-direction: column; gap: 10px; }
+.top-item { display: flex; align-items: center; gap: 10px; }
+.rank {
+  width: 22px; height: 22px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.72rem; font-weight: 700;
+  background: var(--dark-4); color: var(--text-muted);
+  flex-shrink: 0;
+}
+.rank.gold { background: rgba(200,151,43,0.2); color: var(--gold); }
+.rank.silver { background: rgba(180,180,180,0.15); color: #C0C0C0; }
+.rank.bronze { background: rgba(176,100,60,0.2); color: #CD7F32; }
+.t-name { flex: 1; font-size: 0.85rem; }
+.t-amount { font-size: 0.8rem; font-family: 'DM Mono', monospace; color: var(--text-muted); }
+.freq-badge { font-size: 0.75rem; font-weight: 700; background: rgba(200,151,43,0.12); color: var(--gold); padding: 2px 8px; border-radius: 20px; flex-shrink: 0; }
+.freq-label { font-size: 0.75rem; color: var(--text-dim); }
+
+/* ===== FORMS ===== */
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+label { font-size: 0.8rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+input, select, textarea {
+  background: var(--dark-3);
+  border: 1px solid var(--dark-5);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  padding: 9px 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+  outline: none;
+  width: 100%;
+}
+input:focus, select:focus { border-color: var(--gold); }
+input::placeholder { color: var(--text-dim); }
+select { cursor: pointer; }
+select option { background: var(--dark-3); }
+
+.form-row { display: flex; flex-direction: column; gap: 16px; }
+.form-row.two-col { flex-direction: row; gap: 16px; }
+.form-row.two-col .form-group { flex: 1; }
+
+/* ===== BUTTONS ===== */
+.btn-primary {
+  background: var(--gold); color: var(--dark);
+  border: none; border-radius: var(--radius-sm);
+  padding: 10px 20px; font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem; font-weight: 600;
+  cursor: pointer; transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn-primary:hover { background: var(--gold-light); transform: translateY(-1px); }
+.btn-primary.large { padding: 13px 28px; font-size: 0.95rem; }
+.btn-primary.small { padding: 7px 14px; font-size: 0.8rem; }
+.btn-primary.full-width { width: 100%; padding: 13px; font-size: 0.95rem; }
+
+.btn-secondary {
+  background: var(--dark-4); color: var(--text);
+  border: 1px solid var(--dark-5); border-radius: var(--radius-sm);
+  padding: 9px 18px; font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem; font-weight: 500;
+  cursor: pointer; transition: all 0.2s;
+  white-space: nowrap;
+}
+.btn-secondary:hover { background: var(--dark-5); }
+.btn-secondary.small { padding: 6px 12px; font-size: 0.8rem; }
+
+.btn-ghost {
+  background: none; color: var(--text-muted);
+  border: 1px solid var(--border-subtle); border-radius: var(--radius-sm);
+  padding: 9px 18px; font-family: 'DM Sans', sans-serif;
+  font-size: 0.875rem; cursor: pointer; transition: all 0.2s;
+}
+.btn-ghost:hover { background: var(--dark-3); color: var(--text); }
+
+/* ===== TABLES ===== */
+.table-wrap { overflow-x: auto; border-radius: var(--radius); }
+.data-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+.data-table th {
+  background: var(--dark-3); padding: 10px 14px;
+  text-align: left; font-size: 0.75rem;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  color: var(--text-muted); white-space: nowrap;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.data-table td {
+  padding: 10px 14px; border-bottom: 1px solid var(--border-subtle);
+  vertical-align: middle;
+}
+.data-table tr:last-child td { border-bottom: none; }
+.data-table tr:hover td { background: rgba(255,255,255,0.02); }
+.data-table tr { transition: background 0.15s; }
+
+.tithe-num { font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--gold); }
+.status-badge { font-size: 0.72rem; padding: 3px 9px; border-radius: 20px; font-weight: 600; white-space: nowrap; }
+.status-active { background: rgba(61,170,110,0.15); color: var(--green); }
+.status-inactive { background: rgba(90,88,78,0.3); color: var(--text-dim); }
+.action-btn { background: none; border: none; cursor: pointer; padding: 4px 8px; border-radius: 4px; font-size: 0.8rem; color: var(--text-muted); transition: all 0.2s; }
+.action-btn:hover { background: var(--dark-4); color: var(--text); }
+.action-btn.danger:hover { background: rgba(196,72,59,0.15); color: #F07070; }
+
+.search-input {
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--dark-3);
+  border: 1px solid var(--dark-5);
+  color: var(--text); font-size: 0.875rem;
+  min-width: 200px;
+}
+
+.pagination { display: flex; gap: 6px; margin-top: 16px; justify-content: flex-end; }
+.page-btn {
+  padding: 5px 11px; background: var(--dark-3);
+  border: 1px solid var(--dark-5); border-radius: 6px;
+  color: var(--text-muted); font-size: 0.8rem; cursor: pointer;
+  transition: all 0.2s;
+}
+.page-btn.active { background: var(--gold); color: var(--dark); border-color: var(--gold); font-weight: 600; }
+.page-btn:hover:not(.active) { background: var(--dark-4); }
+
+/* ===== GIVING FORM ===== */
+.giving-layout { display: grid; grid-template-columns: 1.5fr 1fr; gap: 20px; }
+.giving-form-card, .giving-recent-card {
+  background: var(--dark-2); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius); padding: 24px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.giving-recent-card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 4px; }
+.categories-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.cat-input-group { display: flex; flex-direction: column; gap: 6px; }
+.cat-input-group label { font-size: 0.78rem; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; }
+.total-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-top: 1px solid var(--border-subtle); }
+.total-amount { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--gold); font-weight: 700; }
+.form-actions { display: flex; gap: 10px; align-items: center; }
+
+.suggestion-box {
+  position: absolute; z-index: 200;
+  background: var(--dark-3); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); margin-top: 4px;
+  box-shadow: var(--shadow); max-height: 200px; overflow-y: auto;
+  width: 100%;
+}
+.suggestion-item { padding: 10px 14px; cursor: pointer; font-size: 0.85rem; transition: background 0.15s; }
+.suggestion-item:hover { background: var(--dark-4); }
+
+.member-info-box { }
+.member-chip {
+  display: flex; align-items: center; gap: 12px;
+  background: rgba(200,151,43,0.08); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 10px 14px;
+}
+.member-chip-icon { color: var(--gold); font-size: 1.2rem; }
+.chip-name { font-weight: 600; font-size: 0.9rem; }
+.chip-tithe { font-family: 'DM Mono', monospace; font-size: 0.78rem; color: var(--gold); }
+
+.today-list { display: flex; flex-direction: column; gap: 8px; flex: 1; }
+.today-entry {
+  background: var(--dark-3); border-radius: 8px; padding: 10px 12px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.today-entry-name { font-size: 0.85rem; font-weight: 500; }
+.today-entry-amt { font-family: 'DM Mono', monospace; font-size: 0.85rem; color: var(--green); }
+.today-total-row { display: flex; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--border-subtle); font-size: 0.9rem; }
+
+/* ===== MOBILE MONEY ===== */
+.mm-layout { display: grid; grid-template-columns: 1fr 1.5fr; gap: 20px; }
+.mm-info-card, .mm-table-card {
+  background: var(--dark-2); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius); padding: 24px;
+}
+.mm-info-card h3 { font-size: 1rem; font-weight: 600; margin-bottom: 20px; }
+.mm-steps { display: flex; flex-direction: column; gap: 16px; margin-bottom: 20px; }
+.mm-step { display: flex; gap: 14px; align-items: flex-start; }
+.step-num {
+  width: 28px; height: 28px; border-radius: 50%;
+  background: rgba(200,151,43,0.15); color: var(--gold);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.78rem; font-weight: 700; flex-shrink: 0;
+}
+.step-text { font-size: 0.85rem; color: var(--text-muted); line-height: 1.5; }
+.mm-config-box {
+  background: var(--dark-3); border-radius: var(--radius-sm); padding: 16px;
+  font-size: 0.85rem; color: var(--text-muted);
+}
+.mm-config-box h4 { font-size: 0.85rem; color: var(--text); margin-bottom: 8px; }
+.mm-config-box ul { padding-left: 18px; display: flex; flex-direction: column; gap: 6px; }
+.card-header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.card-header-row h3 { font-size: 0.95rem; font-weight: 600; }
+.mm-status { display: inline-block; font-size: 0.72rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; }
+.mm-matched { background: rgba(61,170,110,0.15); color: var(--green); }
+.mm-pending { background: rgba(200,151,43,0.15); color: var(--gold); }
+.mm-unmatched { background: rgba(196,72,59,0.15); color: #F07070; }
+
+/* ===== REPORTS ===== */
+.reports-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px; }
+.report-card {
+  background: var(--dark-2); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius); padding: 24px;
+  text-align: center; cursor: pointer;
+  transition: all 0.2s;
+}
+.report-card:hover { border-color: var(--border); transform: translateY(-2px); }
+.report-icon { font-size: 2rem; margin-bottom: 12px; }
+.report-card h3 { font-size: 0.9rem; font-weight: 600; margin-bottom: 8px; }
+.report-card p { font-size: 0.8rem; color: var(--text-muted); margin-bottom: 16px; }
+
+.report-preview { background: var(--dark-2); border: 1px solid var(--border-subtle); border-radius: var(--radius); padding: 24px; }
+.report-preview-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.report-preview-header h3 { font-size: 1rem; font-weight: 600; }
+
+/* ===== SETTINGS ===== */
+.settings-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.settings-card {
+  background: var(--dark-2); border: 1px solid var(--border-subtle);
+  border-radius: var(--radius); padding: 24px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.settings-card h3 { font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; }
+.pool-stat { display: flex; justify-content: space-between; font-size: 0.875rem; }
+.pool-bar-wrap { background: var(--dark-4); border-radius: 4px; height: 8px; overflow: hidden; }
+.pool-bar { height: 100%; background: var(--dark-4); }
+.pool-fill { height: 100%; background: linear-gradient(90deg, var(--gold), var(--gold-light)); border-radius: 4px; }
+.pool-note { font-size: 0.78rem; color: var(--text-dim); text-align: center; }
+.connection-status { padding: 10px 14px; border-radius: var(--radius-sm); font-size: 0.85rem; }
+.connection-ok { background: rgba(61,170,110,0.1); color: var(--green); }
+.connection-fail { background: rgba(196,72,59,0.1); color: #F07070; }
+
+/* ===== MODALS ===== */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 500;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(4px);
+  animation: fadeIn 0.2s ease;
+}
+.modal-overlay.hidden { display: none; }
+.modal {
+  background: var(--dark-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  width: 100%; max-width: 500px;
+  max-height: 90vh; overflow-y: auto;
+  animation: slideUp 0.25s ease;
+}
+.modal-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 18px 24px; border-bottom: 1px solid var(--border-subtle);
+}
+.modal-header h3 { font-family: 'Playfair Display', serif; font-size: 1.1rem; }
+.modal-close { background: none; border: none; color: var(--text-muted); font-size: 1rem; cursor: pointer; padding: 4px; }
+.modal-close:hover { color: var(--text); }
+.modal-body { padding: 20px 24px; display: flex; flex-direction: column; gap: 16px; }
+.modal-footer { padding: 16px 24px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; gap: 10px; }
+
+/* ===== TOAST ===== */
+.toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 1000;
+  background: var(--dark-3); border: 1px solid var(--border);
+  border-radius: var(--radius-sm); padding: 12px 20px;
+  font-size: 0.875rem; color: var(--text);
+  box-shadow: var(--shadow);
+  animation: slideUp 0.3s ease;
+}
+.toast.success { border-color: rgba(61,170,110,0.4); color: var(--green); }
+.toast.error { border-color: rgba(196,72,59,0.4); color: #F07070; }
+
+/* ===== PERIOD SELECT ===== */
+.period-select select {
+  padding: 8px 14px;
+  font-size: 0.85rem;
+  min-width: 140px;
+}
+
+/* ===== UTILITY ===== */
+.hidden { display: none !important; }
+.relative { position: relative; }
+
+/* ===== SCROLLBAR ===== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--dark-5); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1100px) {
+  .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .charts-row { grid-template-columns: 1fr; }
+  .breakdown-row { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 900px) {
+  .sidebar { transform: translateX(-100%); }
+  .sidebar.open { transform: translateX(0); }
+  .main-content { margin-left: 0; }
+  .menu-toggle { display: block; }
+  .giving-layout { grid-template-columns: 1fr; }
+  .mm-layout { grid-template-columns: 1fr; }
+  .settings-grid { grid-template-columns: 1fr; }
+  .reports-grid { grid-template-columns: repeat(2, 1fr); }
+}
+
+@media (max-width: 600px) {
+  .section { padding: 16px; }
+  .kpi-grid { grid-template-columns: 1fr 1fr; }
+  .breakdown-row { grid-template-columns: 1fr; }
+  .form-row.two-col { flex-direction: column; }
+  .categories-grid { grid-template-columns: 1fr 1fr; }
+}
+
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div id="login-screen" class="login-screen active">
+  <div class="login-bg">
+    <div class="cross-motif"></div>
+  </div>
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">✝</div>
+      <h1>TithePro</h1>
+      <p>Church Finance Management</p>
+    </div>
+    <div class="login-form">
+      <div class="form-group">
+        <label>Administrator Username</label>
+        <input type="text" id="login-username" placeholder="admin" autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>Password</label>
+        <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div id="login-error" class="login-error hidden">Invalid credentials. Please try again.</div>
+      <button class="btn-primary full-width" onclick="handleLogin()">Sign In</button>
+    </div>
+    <p class="login-footer">Secured Administration Portal</p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" class="app hidden">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-icon-sm">✝</div>
+      <span>TithePro</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" onclick="showSection('dashboard', this)">
+        <span class="nav-icon">◈</span><span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('members', this)">
+        <span class="nav-icon">◉</span><span>Members</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('giving', this)">
+        <span class="nav-icon">◆</span><span>Record Giving</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('transactions', this)">
+        <span class="nav-icon">◑</span><span>Transactions</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('mobile-money', this)">
+        <span class="nav-icon">◐</span><span>Mobile Money</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('reports', this)">
+        <span class="nav-icon">▣</span><span>Reports</span>
+      </a>
+      <a href="#" class="nav-item" onclick="showSection('settings', this)">
+        <span class="nav-icon">◎</span><span>Settings</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <button class="btn-logout" onclick="handleLogout()">↩ Sign Out</button>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content">
+    <header class="top-bar">
+      <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+      <div class="top-bar-title" id="page-title">Dashboard</div>
+      <div class="top-bar-right">
+        <span class="live-badge">● LIVE</span>
+        <span class="admin-badge">Admin</span>
+      </div>
+    </header>
+
+    <!-- ===== DASHBOARD ===== -->
+    <section id="section-dashboard" class="section active">
+      <div class="section-header">
+        <h2>Financial Dashboard</h2>
+        <div class="period-select">
+          <select id="period-filter" onchange="updateDashboard()">
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="quarter">This Quarter</option>
+            <option value="ytd">Year to Date</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- KPI Cards -->
+      <div class="kpi-grid">
+        <div class="kpi-card gold">
+          <div class="kpi-label">Total Tithers</div>
+          <div class="kpi-value" id="kpi-total-tithers">247</div>
+          <div class="kpi-sub">Registered members</div>
+        </div>
+        <div class="kpi-card blue">
+          <div class="kpi-label">Tithe Numbers Issued</div>
+          <div class="kpi-value" id="kpi-numbers-issued">312</div>
+          <div class="kpi-sub">of 2000 pool</div>
+        </div>
+        <div class="kpi-card green">
+          <div class="kpi-label">Active Tithers</div>
+          <div class="kpi-value" id="kpi-active-tithers">189</div>
+          <div class="kpi-sub">Gave in last 30 days</div>
+        </div>
+        <div class="kpi-card purple">
+          <div class="kpi-label">Total Collected</div>
+          <div class="kpi-value" id="kpi-total-collected">UGX 4,820,500</div>
+          <div class="kpi-sub" id="kpi-period-label">This week</div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="charts-row">
+        <div class="chart-card wide">
+          <div class="chart-header">
+            <h3>Weekly Giving by Category</h3>
+          </div>
+          <canvas id="lineChart" height="200"></canvas>
+        </div>
+        <div class="chart-card">
+          <div class="chart-header">
+            <h3>Payment Methods</h3>
+          </div>
+          <canvas id="donutChart" height="200"></canvas>
+          <div class="donut-legend" id="donut-legend"></div>
+        </div>
+      </div>
+
+      <!-- Category Breakdown -->
+      <div class="breakdown-row">
+        <div class="breakdown-card">
+          <h3>Category Breakdown — <span id="breakdown-period">This Week</span></h3>
+          <div class="breakdown-grid" id="breakdown-grid">
+            <div class="breakdown-item tithe">
+              <div class="b-label">Tithe</div>
+              <div class="b-bar"><div class="b-fill" style="width:68%"></div></div>
+              <div class="b-amount" id="cat-tithe">UGX 2,450,000</div>
+            </div>
+            <div class="breakdown-item offertory">
+              <div class="b-label">Offertory</div>
+              <div class="b-bar"><div class="b-fill" style="width:42%"></div></div>
+              <div class="b-amount" id="cat-offertory">UGX 980,000</div>
+            </div>
+            <div class="breakdown-item building">
+              <div class="b-label">Church Building</div>
+              <div class="b-bar"><div class="b-fill" style="width:55%"></div></div>
+              <div class="b-amount" id="cat-building">UGX 1,200,000</div>
+            </div>
+            <div class="breakdown-item donation">
+              <div class="b-label">Donations</div>
+              <div class="b-bar"><div class="b-fill" style="width:25%"></div></div>
+              <div class="b-amount" id="cat-donation">UGX 190,500</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Top Tithers -->
+        <div class="breakdown-card">
+          <h3>Top Tithers</h3>
+          <div class="top-list" id="top-tithers-list">
+            <div class="top-item"><span class="rank gold">1</span><span class="t-name">Grace Nakato</span><span class="t-amount">UGX 850,000</span></div>
+            <div class="top-item"><span class="rank silver">2</span><span class="t-name">Joseph Ssemakula</span><span class="t-amount">UGX 720,000</span></div>
+            <div class="top-item"><span class="rank bronze">3</span><span class="t-name">Mary Atim</span><span class="t-amount">UGX 610,000</span></div>
+            <div class="top-item"><span class="rank">4</span><span class="t-name">David Okello</span><span class="t-amount">UGX 540,000</span></div>
+            <div class="top-item"><span class="rank">5</span><span class="t-name">Ruth Akello</span><span class="t-amount">UGX 490,000</span></div>
+          </div>
+        </div>
+
+        <!-- Most Frequent -->
+        <div class="breakdown-card">
+          <h3>Most Frequent Givers</h3>
+          <div class="top-list" id="freq-list">
+            <div class="top-item"><span class="freq-badge">52×</span><span class="t-name">Grace Nakato</span><span class="freq-label">every week</span></div>
+            <div class="top-item"><span class="freq-badge">48×</span><span class="t-name">Joseph Ssemakula</span><span class="freq-label">every week</span></div>
+            <div class="top-item"><span class="freq-badge">45×</span><span class="t-name">Pastor Tendo</span><span class="freq-label">every week</span></div>
+            <div class="top-item"><span class="freq-badge">40×</span><span class="t-name">Mary Atim</span><span class="freq-label">near weekly</span></div>
+            <div class="top-item"><span class="freq-badge">38×</span><span class="t-name">Samuel Wamala</span><span class="freq-label">near weekly</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== MEMBERS ===== -->
+    <section id="section-members" class="section">
+      <div class="section-header">
+        <h2>Member Registry</h2>
+        <div class="header-actions">
+          <input type="text" id="member-search" placeholder="Search by name, tithe #, phone..." class="search-input" oninput="filterMembers()">
+          <button class="btn-primary" onclick="openAddMemberModal()">+ Add Member</button>
+          <button class="btn-secondary" onclick="exportMembers()">↓ Export CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="members-table">
+          <thead>
+            <tr>
+              <th>Tithe No.</th>
+              <th>Full Name</th>
+              <th>Phone</th>
+              <th>Email</th>
+              <th>Registered</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="members-tbody"></tbody>
+        </table>
+      </div>
+      <div class="pagination" id="members-pagination"></div>
+    </section>
+
+    <!-- ===== RECORD GIVING ===== -->
+    <section id="section-giving" class="section">
+      <div class="section-header">
+        <h2>Record Giving</h2>
+        <p class="section-desc">Capture Sunday cash or cheque offerings</p>
+      </div>
+      <div class="giving-layout">
+        <div class="giving-form-card">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Tithe Number / Member Lookup</label>
+              <input type="text" id="giving-lookup" placeholder="TBGB0001 or member name..." oninput="lookupMember()">
+              <div id="member-suggestion" class="suggestion-box hidden"></div>
+            </div>
+          </div>
+          <div class="member-info-box hidden" id="selected-member-box">
+            <div class="member-chip">
+              <span class="member-chip-icon">◉</span>
+              <div>
+                <div id="chip-name" class="chip-name">—</div>
+                <div id="chip-tithe" class="chip-tithe">—</div>
+              </div>
+            </div>
+          </div>
+          <div class="form-row two-col">
+            <div class="form-group">
+              <label>Date</label>
+              <input type="date" id="giving-date">
+            </div>
+            <div class="form-group">
+              <label>Payment Method</label>
+              <select id="giving-method">
+                <option value="cash">Cash</option>
+                <option value="cheque">Cheque</option>
+                <option value="mobile">Mobile Money</option>
+              </select>
+            </div>
+          </div>
+          <div class="categories-grid">
+            <div class="cat-input-group">
+              <label>Tithe</label>
+              <input type="number" id="amt-tithe" placeholder="0" min="0">
+            </div>
+            <div class="cat-input-group">
+              <label>Offertory</label>
+              <input type="number" id="amt-offertory" placeholder="0" min="0">
+            </div>
+            <div class="cat-input-group">
+              <label>Church Building</label>
+              <input type="number" id="amt-building" placeholder="0" min="0">
+            </div>
+            <div class="cat-input-group">
+              <label>Donation</label>
+              <input type="number" id="amt-donation" placeholder="0" min="0">
+            </div>
+          </div>
+          <div class="total-row">
+            <span>Total:</span>
+            <span class="total-amount" id="giving-total">UGX 0</span>
+          </div>
+          <div class="form-group">
+            <label>Notes / Cheque Number (optional)</label>
+            <input type="text" id="giving-notes" placeholder="e.g. Cheque #12345 or any notes">
+          </div>
+          <div class="form-actions">
+            <button class="btn-primary large" onclick="recordGiving()">✓ Record Giving</button>
+            <button class="btn-ghost" onclick="clearGivingForm()">Clear</button>
+          </div>
+        </div>
+
+        <!-- Recent Entries Today -->
+        <div class="giving-recent-card">
+          <h3>Today's Entries</h3>
+          <div id="today-entries" class="today-list"></div>
+          <div class="today-total-row">
+            <span>Today's Total:</span>
+            <strong id="today-total">UGX 0</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== TRANSACTIONS ===== -->
+    <section id="section-transactions" class="section">
+      <div class="section-header">
+        <h2>All Transactions</h2>
+        <div class="header-actions">
+          <select id="tx-period" onchange="filterTransactions()">
+            <option value="all">All Time</option>
+            <option value="week">This Week</option>
+            <option value="month">This Month</option>
+            <option value="quarter">This Quarter</option>
+          </select>
+          <select id="tx-category" onchange="filterTransactions()">
+            <option value="all">All Categories</option>
+            <option value="tithe">Tithe</option>
+            <option value="offertory">Offertory</option>
+            <option value="building">Church Building</option>
+            <option value="donation">Donation</option>
+          </select>
+          <select id="tx-method" onchange="filterTransactions()">
+            <option value="all">All Methods</option>
+            <option value="cash">Cash</option>
+            <option value="cheque">Cheque</option>
+            <option value="mobile">Mobile Money</option>
+          </select>
+          <input type="text" id="tx-search" placeholder="Search tithe # or name..." class="search-input" oninput="filterTransactions()">
+          <button class="btn-secondary" onclick="exportTransactions()">↓ Export CSV</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <table class="data-table" id="tx-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Tithe No.</th>
+              <th>Member Name</th>
+              <th>Tithe</th>
+              <th>Offertory</th>
+              <th>Building</th>
+              <th>Donation</th>
+              <th>Total</th>
+              <th>Method</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="tx-tbody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- ===== MOBILE MONEY ===== -->
+    <section id="section-mobile-money" class="section">
+      <div class="section-header">
+        <h2>Mobile Money</h2>
+        <p class="section-desc">Transactions from the designated church mobile number</p>
+      </div>
+      <div class="mm-layout">
+        <div class="mm-info-card">
+          <h3>📱 How Mobile Money Integration Works</h3>
+          <div class="mm-steps">
+            <div class="mm-step">
+              <div class="step-num">1</div>
+              <div class="step-text">Church members send Mobile Money to the <strong>designated church number</strong> with their tithe number in the message (e.g. "TBGB0042 Tithe")</div>
+            </div>
+            <div class="mm-step">
+              <div class="step-num">2</div>
+              <div class="step-text">The <strong>Google Apps Script</strong> runs every 5 minutes to parse incoming SMS from a linked Google Sheet (populated via Android SMS Forwarder app)</div>
+            </div>
+            <div class="mm-step">
+              <div class="step-num">3</div>
+              <div class="step-text">Transactions are automatically matched to members and recorded in the <strong>MobileMoney</strong> sheet tab</div>
+            </div>
+            <div class="mm-step">
+              <div class="step-num">4</div>
+              <div class="step-text">A <strong>thank-you SMS</strong> is sent back to the member via the script confirming receipt</div>
+            </div>
+          </div>
+          <div class="mm-config-box">
+            <h4>Required Setup</h4>
+            <ul>
+              <li>Install <strong>SMS Forwarder</strong> app on the church phone</li>
+              <li>Configure it to forward SMS to the Google Sheet webhook URL</li>
+              <li>Google Script handles parsing, matching & notifications</li>
+            </ul>
+          </div>
+        </div>
+        <div class="mm-table-card">
+          <div class="card-header-row">
+            <h3>Mobile Money Transactions</h3>
+            <button class="btn-secondary small" onclick="exportMM()">↓ Export</button>
+          </div>
+          <div class="table-wrap">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Date/Time</th>
+                  <th>Sender</th>
+                  <th>Phone</th>
+                  <th>Amount</th>
+                  <th>Tithe No.</th>
+                  <th>Category</th>
+                  <th>Status</th>
+                </tr>
+              </thead>
+              <tbody id="mm-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== REPORTS ===== -->
+    <section id="section-reports" class="section">
+      <div class="section-header">
+        <h2>Reports</h2>
+      </div>
+      <div class="reports-grid">
+        <div class="report-card" onclick="generateMemberReport()">
+          <div class="report-icon">📋</div>
+          <h3>Member Giving Statement</h3>
+          <p>Send individual giving reports to members by email</p>
+          <button class="btn-primary small">Generate & Send</button>
+        </div>
+        <div class="report-card" onclick="generateSundayReport()">
+          <div class="report-icon">🗓️</div>
+          <h3>Sunday Collection Report</h3>
+          <p>Summary of all offerings collected on a specific Sunday</p>
+          <button class="btn-primary small">Generate</button>
+        </div>
+        <div class="report-card" onclick="generateMonthlyReport()">
+          <div class="report-icon">📊</div>
+          <h3>Monthly Summary Report</h3>
+          <p>Full monthly breakdown by category and payment method</p>
+          <button class="btn-primary small">Generate</button>
+        </div>
+        <div class="report-card" onclick="generateYTDReport()">
+          <div class="report-icon">📈</div>
+          <h3>Year-to-Date Report</h3>
+          <p>Annual giving summary for all members and categories</p>
+          <button class="btn-primary small">Generate</button>
+        </div>
+      </div>
+      <!-- Report Preview -->
+      <div class="report-preview hidden" id="report-preview">
+        <div class="report-preview-header">
+          <h3 id="report-preview-title">Report Preview</h3>
+          <div>
+            <button class="btn-secondary" onclick="downloadReport()">↓ Download CSV</button>
+            <button class="btn-ghost" onclick="closeReport()">✕ Close</button>
+          </div>
+        </div>
+        <div id="report-content"></div>
+      </div>
+    </section>
+
+    <!-- ===== SETTINGS ===== -->
+    <section id="section-settings" class="section">
+      <div class="section-header">
+        <h2>Settings</h2>
+      </div>
+      <div class="settings-grid">
+        <div class="settings-card">
+          <h3>Church Information</h3>
+          <div class="form-group"><label>Church Name</label><input type="text" value="The Body of God's Beloved" id="church-name"></div>
+          <div class="form-group"><label>Address</label><input type="text" value="Kampala, Uganda" id="church-address"></div>
+          <div class="form-group"><label>Mobile Money Number</label><input type="text" value="+256 700 000 000" id="mm-number"></div>
+          <div class="form-group"><label>Admin Email</label><input type="email" value="admin@church.org" id="admin-email"></div>
+          <button class="btn-primary" onclick="saveSettings()">Save Settings</button>
+        </div>
+        <div class="settings-card">
+          <h3>Google Sheets Integration</h3>
+          <div class="form-group"><label>Google Sheet ID</label><input type="text" id="sheet-id" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms"></div>
+          <div class="form-group"><label>Apps Script Web App URL</label><input type="text" id="script-url" placeholder="https://script.google.com/macros/s/.../exec"></div>
+          <button class="btn-primary" onclick="saveIntegration()">Save & Test Connection</button>
+          <div id="connection-status" class="connection-status hidden"></div>
+        </div>
+        <div class="settings-card">
+          <h3>Change Admin Password</h3>
+          <div class="form-group"><label>Current Password</label><input type="password" id="curr-pass"></div>
+          <div class="form-group"><label>New Password</label><input type="password" id="new-pass"></div>
+          <div class="form-group"><label>Confirm New Password</label><input type="password" id="confirm-pass"></div>
+          <button class="btn-primary" onclick="changePassword()">Update Password</button>
+        </div>
+        <div class="settings-card">
+          <h3>Tithe Pool Status</h3>
+          <div class="pool-stat"><span>Total Pool Size:</span><strong>2000</strong></div>
+          <div class="pool-stat"><span>Numbers Assigned:</span><strong id="pool-assigned">312</strong></div>
+          <div class="pool-stat"><span>Numbers Available:</span><strong id="pool-available">1688</strong></div>
+          <div class="pool-bar-wrap"><div class="pool-bar"><div class="pool-fill" id="pool-fill" style="width:15.6%"></div></div></div>
+          <p class="pool-note">TBGB0001 — TBGB2000</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ===== MODALS ===== -->
+
+<!-- Add/Edit Member Modal -->
+<div id="member-modal" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Add New Member</h3>
+      <button class="modal-close" onclick="closeModal('member-modal')">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-member-id">
+      <div class="form-row two-col">
+        <div class="form-group"><label>Full Name *</label><input type="text" id="m-name" placeholder="Full name"></div>
+        <div class="form-group"><label>Phone *</label><input type="tel" id="m-phone" placeholder="+256 7XX XXX XXX"></div>
+      </div>
+      <div class="form-group"><label>Email Address</label><input type="email" id="m-email" placeholder="member@email.com"></div>
+      <div class="form-row two-col">
+        <div class="form-group"><label>Tithe Number</label><input type="text" id="m-tithe" placeholder="Auto-assigned" readonly></div>
+        <div class="form-group"><label>Status</label>
+          <select id="m-status"><option value="active">Active</option><option value="inactive">Inactive</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label>Notes</label><input type="text" id="m-notes" placeholder="Optional notes"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-ghost" onclick="closeModal('member-modal')">Cancel</button>
+      <button class="btn-primary" onclick="saveMember()">Save Member</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast Notification -->
+<div id="toast" class="toast hidden"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+
+<script>
+// ===== TITHEPRO APP.JS =====
+// Church Finance Management System
+
+// ===== CONFIG =====
+const CONFIG = {
+  ADMIN_USER: 'admin',
+  ADMIN_PASS: 'church@2024',
+  SHEET_ID: '', // Set in Settings
+  SCRIPT_URL: '', // Google Apps Script Web App URL
+  TITHE_PREFIX: 'TBGB',
+  TITHE_POOL_SIZE: 2000,
+  CURRENCY: 'UGX'
+};
+
+// ===== LOCAL STATE =====
+let state = {
+  members: [],
+  transactions: [],
+  mobileMoney: [],
+  currentEditId: null,
+  nextTitheNum: 1,
+  charts: {},
+  todayEntries: [],
+  membersPage: 1,
+  membersPerPage: 20,
+  filteredMembers: []
+};
+
+// ===== SEED DEMO DATA =====
+function seedDemoData() {
+  state.members = [
+    { id: 'm001', titheNum: 'TBGB0001', name: 'Grace Nakato', phone: '+256772001001', email: 'grace@email.com', registered: '2023-01-15', status: 'active', notes: '' },
+    { id: 'm002', titheNum: 'TBGB0002', name: 'Joseph Ssemakula', phone: '+256772001002', email: 'joseph@email.com', registered: '2023-02-10', status: 'active', notes: '' },
+    { id: 'm003', titheNum: 'TBGB0003', name: 'Mary Atim', phone: '+256772001003', email: 'mary@email.com', registered: '2023-01-20', status: 'active', notes: '' },
+    { id: 'm004', titheNum: 'TBGB0004', name: 'David Okello', phone: '+256772001004', email: 'david@email.com', registered: '2023-03-05', status: 'active', notes: '' },
+    { id: 'm005', titheNum: 'TBGB0005', name: 'Ruth Akello', phone: '+256772001005', email: 'ruth@email.com', registered: '2023-03-12', status: 'active', notes: '' },
+    { id: 'm006', titheNum: 'TBGB0006', name: 'Pastor Tendo', phone: '+256772001006', email: 'tendo@email.com', registered: '2022-12-01', status: 'active', notes: 'Senior Pastor' },
+    { id: 'm007', titheNum: 'TBGB0007', name: 'Samuel Wamala', phone: '+256772001007', email: 'sam@email.com', registered: '2023-04-18', status: 'active', notes: '' },
+    { id: 'm008', titheNum: 'TBGB0008', name: 'Esther Namukasa', phone: '+256772001008', email: 'esther@email.com', registered: '2023-05-02', status: 'inactive', notes: '' },
+    { id: 'm009', titheNum: 'TBGB0009', name: 'Paul Mugisha', phone: '+256772001009', email: 'paul@email.com', registered: '2023-06-14', status: 'active', notes: '' },
+    { id: 'm010', titheNum: 'TBGB0010', name: 'Rebecca Achieng', phone: '+256772001010', email: 'rebecca@email.com', registered: '2023-07-22', status: 'active', notes: '' },
+  ];
+
+  const cats = ['tithe','offertory','building','donation'];
+  const methods = ['cash','cheque','mobile'];
+  for (let i = 0; i < 40; i++) {
+    const member = state.members[Math.floor(Math.random() * state.members.length)];
+    const d = new Date();
+    d.setDate(d.getDate() - Math.floor(Math.random() * 90));
+    state.transactions.push({
+      id: 'tx' + i,
+      date: d.toISOString().split('T')[0],
+      titheNum: member.titheNum,
+      memberName: member.name,
+      tithe: Math.round(Math.random() * 500000 / 10000) * 10000,
+      offertory: Math.round(Math.random() * 100000 / 1000) * 1000,
+      building: Math.round(Math.random() * 200000 / 10000) * 10000,
+      donation: Math.round(Math.random() * 50000 / 1000) * 1000,
+      method: methods[Math.floor(Math.random() * methods.length)],
+      notes: ''
+    });
+  }
+
+  state.mobileMoney = [
+    { datetime: '2025-04-21 09:14', sender: 'Grace Nakato', phone: '+256772001001', amount: 200000, titheNum: 'TBGB0001', category: 'Tithe', status: 'matched' },
+    { datetime: '2025-04-20 14:32', sender: 'Unknown Sender', phone: '+256772123456', amount: 50000, titheNum: '—', category: '—', status: 'unmatched' },
+    { datetime: '2025-04-20 11:05', sender: 'Joseph Ssemakula', phone: '+256772001002', amount: 150000, titheNum: 'TBGB0002', category: 'Tithe', status: 'matched' },
+    { datetime: '2025-04-19 16:45', sender: 'David Okello', phone: '+256772001004', amount: 75000, titheNum: 'TBGB0004', category: 'Building', status: 'matched' },
+    { datetime: '2025-04-14 10:20', sender: 'Mary Atim', phone: '+256772001003', amount: 100000, titheNum: 'TBGB0003', category: 'Tithe', status: 'pending' },
+  ];
+
+  state.nextTitheNum = state.members.length + 1;
+  saveLocal();
+}
+
+function saveLocal() {
+  try {
+    localStorage.setItem('tithepro_members', JSON.stringify(state.members));
+    localStorage.setItem('tithepro_transactions', JSON.stringify(state.transactions));
+    localStorage.setItem('tithepro_mm', JSON.stringify(state.mobileMoney));
+    localStorage.setItem('tithepro_nextnum', state.nextTitheNum);
+  } catch(e) {}
+}
+
+function loadLocal() {
+  try {
+    const m = localStorage.getItem('tithepro_members');
+    const t = localStorage.getItem('tithepro_transactions');
+    const mm = localStorage.getItem('tithepro_mm');
+    const n = localStorage.getItem('tithepro_nextnum');
+    if (m) state.members = JSON.parse(m);
+    if (t) state.transactions = JSON.parse(t);
+    if (mm) state.mobileMoney = JSON.parse(mm);
+    if (n) state.nextTitheNum = parseInt(n);
+    return !!m;
+  } catch(e) { return false; }
+}
+
+// ===== AUTH =====
+function handleLogin() {
+  const u = document.getElementById('login-username').value.trim();
+  const p = document.getElementById('login-password').value;
+  const stored = localStorage.getItem('tithepro_pass') || CONFIG.ADMIN_PASS;
+  if (u === CONFIG.ADMIN_USER && p === stored) {
+    document.getElementById('login-screen').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    initApp();
+  } else {
+    document.getElementById('login-error').classList.remove('hidden');
+  }
+}
+
+function handleLogout() {
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('login-screen').classList.remove('hidden');
+  document.getElementById('login-error').classList.add('hidden');
+  document.getElementById('login-password').value = '';
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !document.getElementById('login-screen').classList.contains('hidden')) {
+    handleLogin();
+  }
+});
+
+// ===== INIT =====
+function initApp() {
+  const loaded = loadLocal();
+  if (!loaded) seedDemoData();
+  renderDashboard();
+  renderMembers();
+  renderTransactions();
+  renderMobileMoney();
+  setTodayDate();
+  setupGivingListeners();
+}
+
+// ===== NAVIGATION =====
+function showSection(name, el) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('section-' + name).classList.add('active');
+  if (el) el.classList.add('active');
+  document.getElementById('page-title').textContent = el ? el.querySelector('span:last-child').textContent : name;
+  if (name === 'dashboard') renderDashboard();
+  if (name === 'members') renderMembers();
+  if (name === 'transactions') renderTransactions();
+  if (name === 'mobile-money') renderMobileMoney();
+  if (window.innerWidth < 900) closeSidebar();
+  return false;
+}
+
+function toggleSidebar() {
+  document.getElementById('sidebar').classList.toggle('open');
+}
+function closeSidebar() {
+  document.getElementById('sidebar').classList.remove('open');
+}
+
+// ===== FORMAT =====
+function fmtCurrency(n) {
+  if (!n) return CONFIG.CURRENCY + ' 0';
+  return CONFIG.CURRENCY + ' ' + Number(n).toLocaleString();
+}
+function fmtDate(d) {
+  if (!d) return '—';
+  return new Date(d).toLocaleDateString('en-UG', { day:'2-digit', month:'short', year:'numeric' });
+}
+function getPeriodDates(period) {
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  switch(period) {
+    case 'week': {
+      const day = today.getDay() || 7;
+      const sunday = new Date(today); sunday.setDate(today.getDate() - (day - 0));
+      return { from: sunday, to: now };
+    }
+    case 'month': return { from: new Date(now.getFullYear(), now.getMonth(), 1), to: now };
+    case 'quarter': {
+      const q = Math.floor(now.getMonth() / 3);
+      return { from: new Date(now.getFullYear(), q * 3, 1), to: now };
+    }
+    case 'ytd': return { from: new Date(now.getFullYear(), 0, 1), to: now };
+    default: return { from: new Date(0), to: now };
+  }
+}
+function txInPeriod(tx, period) {
+  const { from } = getPeriodDates(period);
+  return new Date(tx.date) >= from;
+}
+
+// ===== DASHBOARD =====
+function renderDashboard() {
+  const period = document.getElementById('period-filter')?.value || 'week';
+  const labels = { week: 'This week', month: 'This month', quarter: 'This quarter', ytd: 'Year to date' };
+  document.getElementById('kpi-period-label').textContent = labels[period];
+  document.getElementById('breakdown-period').textContent = labels[period];
+
+  const filtered = state.transactions.filter(tx => txInPeriod(tx, period));
+  const totals = { tithe: 0, offertory: 0, building: 0, donation: 0 };
+  filtered.forEach(tx => {
+    totals.tithe += tx.tithe || 0;
+    totals.offertory += tx.offertory || 0;
+    totals.building += tx.building || 0;
+    totals.donation += tx.donation || 0;
+  });
+  const grandTotal = totals.tithe + totals.offertory + totals.building + totals.donation;
+
+  document.getElementById('kpi-total-tithers').textContent = state.members.length;
+  document.getElementById('kpi-numbers-issued').textContent = state.members.length;
+  const active30 = state.members.filter(m => {
+    return state.transactions.some(tx => {
+      return tx.titheNum === m.titheNum && (new Date() - new Date(tx.date)) < 31*86400000;
+    });
+  }).length;
+  document.getElementById('kpi-active-tithers').textContent = active30;
+  document.getElementById('kpi-total-collected').textContent = fmtCurrency(grandTotal);
+
+  document.getElementById('cat-tithe').textContent = fmtCurrency(totals.tithe);
+  document.getElementById('cat-offertory').textContent = fmtCurrency(totals.offertory);
+  document.getElementById('cat-building').textContent = fmtCurrency(totals.building);
+  document.getElementById('cat-donation').textContent = fmtCurrency(totals.donation);
+
+  const maxCat = Math.max(totals.tithe, totals.offertory, totals.building, totals.donation) || 1;
+  ['tithe','offertory','building','donation'].forEach(cat => {
+    const el = document.querySelector(`.breakdown-item.${cat} .b-fill`);
+    if (el) el.style.width = (totals[cat] / maxCat * 100) + '%';
+  });
+
+  renderLineChart(period);
+  renderDonutChart(filtered);
+  updateSettings();
+}
+
+function updateDashboard() { renderDashboard(); }
+
+function renderLineChart(period) {
+  const ctx = document.getElementById('lineChart');
+  if (!ctx) return;
+  if (state.charts.line) { state.charts.line.destroy(); }
+
+  const weeks = getLast8Weeks();
+  const datasets = [
+    { label: 'Tithe', key: 'tithe', color: '#C8972B' },
+    { label: 'Offertory', key: 'offertory', color: '#3B82C4' },
+    { label: 'Building', key: 'building', color: '#3DAA6E' },
+    { label: 'Donation', key: 'donation', color: '#7C5CBF' },
+  ];
+
+  const data = datasets.map(ds => ({
+    label: ds.label,
+    data: weeks.map(w => {
+      return state.transactions
+        .filter(tx => {
+          const d = new Date(tx.date);
+          return d >= w.from && d < w.to;
+        })
+        .reduce((sum, tx) => sum + (tx[ds.key] || 0), 0);
+    }),
+    borderColor: ds.color,
+    backgroundColor: ds.color + '22',
+    tension: 0.4,
+    fill: false,
+    pointRadius: 4,
+    pointHoverRadius: 6,
+  }));
+
+  state.charts.line = new Chart(ctx, {
+    type: 'line',
+    data: { labels: weeks.map(w => w.label), datasets: data },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8A8778', font: { size: 11 }, boxWidth: 12 } } },
+      scales: {
+        x: { ticks: { color: '#5A584E', font: { size: 10 } }, grid: { color: 'rgba(255,255,255,0.04)' } },
+        y: {
+          ticks: { color: '#5A584E', font: { size: 10 }, callback: v => 'UGX ' + (v/1000).toFixed(0) + 'k' },
+          grid: { color: 'rgba(255,255,255,0.04)' }
+        }
+      }
+    }
+  });
+}
+
+function getLast8Weeks() {
+  const weeks = [];
+  const now = new Date();
+  for (let i = 7; i >= 0; i--) {
+    const end = new Date(now);
+    end.setDate(now.getDate() - i * 7);
+    const start = new Date(end);
+    start.setDate(end.getDate() - 7);
+    weeks.push({ from: start, to: end, label: 'Wk ' + fmtShortDate(end) });
+  }
+  return weeks;
+}
+function fmtShortDate(d) {
+  return d.toLocaleDateString('en', { month: 'short', day: 'numeric' });
+}
+
+function renderDonutChart(filtered) {
+  const ctx = document.getElementById('donutChart');
+  if (!ctx) return;
+  if (state.charts.donut) { state.charts.donut.destroy(); }
+
+  const byMethod = { cash: 0, cheque: 0, mobile: 0 };
+  filtered.forEach(tx => {
+    const t = (tx.tithe||0) + (tx.offertory||0) + (tx.building||0) + (tx.donation||0);
+    byMethod[tx.method] = (byMethod[tx.method] || 0) + t;
+  });
+
+  const colors = ['#C8972B', '#3B82C4', '#3DAA6E'];
+  const labels = ['Cash', 'Cheque', 'Mobile Money'];
+  const vals = [byMethod.cash, byMethod.cheque, byMethod.mobile];
+
+  state.charts.donut = new Chart(ctx, {
+    type: 'doughnut',
+    data: {
+      labels,
+      datasets: [{ data: vals, backgroundColor: colors, borderWidth: 0, hoverOffset: 6 }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      cutout: '68%',
+      plugins: { legend: { display: false } }
+    }
+  });
+
+  const legend = document.getElementById('donut-legend');
+  const total = vals.reduce((a,b) => a+b, 0) || 1;
+  legend.innerHTML = labels.map((l, i) => `
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${colors[i]}"></div>
+      <span style="flex:1">${l}</span>
+      <span style="font-family:'DM Mono',monospace;font-size:0.78rem;color:#8A8778">${((vals[i]/total)*100).toFixed(0)}%</span>
+    </div>
+  `).join('');
+}
+
+// ===== MEMBERS =====
+function renderMembers() {
+  const q = (document.getElementById('member-search')?.value || '').toLowerCase();
+  state.filteredMembers = state.members.filter(m =>
+    !q || m.name.toLowerCase().includes(q) || m.titheNum.toLowerCase().includes(q) || m.phone.includes(q)
+  );
+  const page = state.membersPage;
+  const per = state.membersPerPage;
+  const paged = state.filteredMembers.slice((page-1)*per, page*per);
+
+  document.getElementById('members-tbody').innerHTML = paged.map(m => `
+    <tr>
+      <td><span class="tithe-num">${m.titheNum}</span></td>
+      <td>${m.name}</td>
+      <td>${m.phone}</td>
+      <td>${m.email || '—'}</td>
+      <td>${fmtDate(m.registered)}</td>
+      <td><span class="status-badge ${m.status === 'active' ? 'status-active' : 'status-inactive'}">${m.status}</span></td>
+      <td>
+        <button class="action-btn" onclick="editMember('${m.id}')">✏️ Edit</button>
+        <button class="action-btn danger" onclick="deleteMember('${m.id}')">🗑️ Delete</button>
+      </td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" style="text-align:center;color:#5A584E;padding:32px">No members found</td></tr>';
+
+  const totalPages = Math.ceil(state.filteredMembers.length / per);
+  const pag = document.getElementById('members-pagination');
+  pag.innerHTML = '';
+  for (let i = 1; i <= totalPages; i++) {
+    const btn = document.createElement('button');
+    btn.className = 'page-btn' + (i === page ? ' active' : '');
+    btn.textContent = i;
+    btn.onclick = () => { state.membersPage = i; renderMembers(); };
+    pag.appendChild(btn);
+  }
+}
+
+function filterMembers() {
+  state.membersPage = 1;
+  renderMembers();
+}
+
+function openAddMemberModal() {
+  state.currentEditId = null;
+  document.getElementById('modal-title').textContent = 'Add New Member';
+  document.getElementById('edit-member-id').value = '';
+  ['m-name','m-phone','m-email','m-notes'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('m-tithe').value = nextTitheNumber();
+  document.getElementById('m-status').value = 'active';
+  document.getElementById('member-modal').classList.remove('hidden');
+}
+
+function editMember(id) {
+  const m = state.members.find(x => x.id === id);
+  if (!m) return;
+  state.currentEditId = id;
+  document.getElementById('modal-title').textContent = 'Edit Member';
+  document.getElementById('edit-member-id').value = id;
+  document.getElementById('m-name').value = m.name;
+  document.getElementById('m-phone').value = m.phone;
+  document.getElementById('m-email').value = m.email;
+  document.getElementById('m-tithe').value = m.titheNum;
+  document.getElementById('m-status').value = m.status;
+  document.getElementById('m-notes').value = m.notes || '';
+  document.getElementById('member-modal').classList.remove('hidden');
+}
+
+function deleteMember(id) {
+  if (!confirm('Delete this member? This cannot be undone.')) return;
+  state.members = state.members.filter(m => m.id !== id);
+  saveLocal();
+  renderMembers();
+  showToast('Member deleted', 'success');
+}
+
+function saveMember() {
+  const name = document.getElementById('m-name').value.trim();
+  const phone = document.getElementById('m-phone').value.trim();
+  if (!name || !phone) { showToast('Name and phone are required', 'error'); return; }
+  if (state.currentEditId) {
+    const idx = state.members.findIndex(m => m.id === state.currentEditId);
+    state.members[idx] = { ...state.members[idx],
+      name, phone,
+      email: document.getElementById('m-email').value.trim(),
+      status: document.getElementById('m-status').value,
+      notes: document.getElementById('m-notes').value.trim()
+    };
+    showToast('Member updated', 'success');
+  } else {
+    const titheNum = nextTitheNumber();
+    state.members.push({
+      id: 'mx' + Date.now(), titheNum, name, phone,
+      email: document.getElementById('m-email').value.trim(),
+      registered: new Date().toISOString().split('T')[0],
+      status: document.getElementById('m-status').value,
+      notes: document.getElementById('m-notes').value.trim()
+    });
+    state.nextTitheNum++;
+    showToast('Member added — Tithe # ' + titheNum, 'success');
+  }
+  saveLocal();
+  closeModal('member-modal');
+  renderMembers();
+}
+
+function nextTitheNumber() {
+  return CONFIG.TITHE_PREFIX + String(state.nextTitheNum).padStart(4, '0');
+}
+
+function exportMembers() {
+  const rows = [['Tithe No.','Name','Phone','Email','Registered','Status']];
+  state.members.forEach(m => rows.push([m.titheNum, m.name, m.phone, m.email, m.registered, m.status]));
+  downloadCSV(rows, 'members_export_' + today() + '.csv');
+}
+
+// ===== GIVING =====
+function setTodayDate() {
+  const d = document.getElementById('giving-date');
+  if (d) d.value = new Date().toISOString().split('T')[0];
+}
+
+function setupGivingListeners() {
+  ['amt-tithe','amt-offertory','amt-building','amt-donation'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.addEventListener('input', updateGivingTotal);
+  });
+}
+
+function updateGivingTotal() {
+  const sum = ['amt-tithe','amt-offertory','amt-building','amt-donation']
+    .reduce((s, id) => s + (parseFloat(document.getElementById(id)?.value) || 0), 0);
+  document.getElementById('giving-total').textContent = fmtCurrency(sum);
+}
+
+let selectedMember = null;
+
+function lookupMember() {
+  const q = document.getElementById('giving-lookup').value.toLowerCase().trim();
+  const box = document.getElementById('member-suggestion');
+  if (!q) { box.classList.add('hidden'); selectedMember = null; hideMemberBox(); return; }
+  const matches = state.members.filter(m =>
+    m.name.toLowerCase().includes(q) || m.titheNum.toLowerCase().includes(q) || m.phone.includes(q)
+  ).slice(0, 6);
+  if (matches.length === 0) { box.classList.add('hidden'); return; }
+  box.innerHTML = matches.map(m => `
+    <div class="suggestion-item" onclick="selectMember('${m.id}')">
+      <strong>${m.titheNum}</strong> — ${m.name} <span style="color:#5A584E;font-size:0.8rem">${m.phone}</span>
+    </div>
+  `).join('');
+  box.classList.remove('hidden');
+}
+
+function selectMember(id) {
+  selectedMember = state.members.find(m => m.id === id);
+  document.getElementById('giving-lookup').value = selectedMember.titheNum + ' — ' + selectedMember.name;
+  document.getElementById('member-suggestion').classList.add('hidden');
+  document.getElementById('chip-name').textContent = selectedMember.name;
+  document.getElementById('chip-tithe').textContent = selectedMember.titheNum;
+  document.getElementById('selected-member-box').classList.remove('hidden');
+}
+
+function hideMemberBox() {
+  document.getElementById('selected-member-box').classList.add('hidden');
+}
+
+function recordGiving() {
+  if (!selectedMember) { showToast('Please select a member first', 'error'); return; }
+  const tithe = parseFloat(document.getElementById('amt-tithe').value) || 0;
+  const offertory = parseFloat(document.getElementById('amt-offertory').value) || 0;
+  const building = parseFloat(document.getElementById('amt-building').value) || 0;
+  const donation = parseFloat(document.getElementById('amt-donation').value) || 0;
+  if (!tithe && !offertory && !building && !donation) { showToast('Enter at least one amount', 'error'); return; }
+  const tx = {
+    id: 'tx' + Date.now(),
+    date: document.getElementById('giving-date').value,
+    titheNum: selectedMember.titheNum,
+    memberName: selectedMember.name,
+    tithe, offertory, building, donation,
+    method: document.getElementById('giving-method').value,
+    notes: document.getElementById('giving-notes').value
+  };
+  state.transactions.push(tx);
+  state.todayEntries.push(tx);
+  saveLocal();
+  renderTodayEntries();
+  clearGivingForm();
+  showToast('Giving recorded for ' + selectedMember.name, 'success');
+}
+
+function clearGivingForm() {
+  ['amt-tithe','amt-offertory','amt-building','amt-donation','giving-notes'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  document.getElementById('giving-lookup').value = '';
+  document.getElementById('member-suggestion').classList.add('hidden');
+  hideMemberBox();
+  document.getElementById('giving-total').textContent = fmtCurrency(0);
+  selectedMember = null;
+  setTodayDate();
+}
+
+function renderTodayEntries() {
+  const today = new Date().toISOString().split('T')[0];
+  const todayTx = state.transactions.filter(tx => tx.date === today);
+  const list = document.getElementById('today-entries');
+  if (!list) return;
+  list.innerHTML = todayTx.slice(-10).reverse().map(tx => {
+    const total = (tx.tithe||0)+(tx.offertory||0)+(tx.building||0)+(tx.donation||0);
+    return `<div class="today-entry">
+      <div>
+        <div class="today-entry-name">${tx.memberName}</div>
+        <div style="font-size:0.75rem;color:#5A584E">${tx.titheNum} · ${tx.method}</div>
+      </div>
+      <div class="today-entry-amt">${fmtCurrency(total)}</div>
+    </div>`;
+  }).join('') || '<div style="color:#5A584E;font-size:0.85rem;text-align:center;padding:20px">No entries today</div>';
+
+  const todayTotal = todayTx.reduce((s, tx) => s + (tx.tithe||0)+(tx.offertory||0)+(tx.building||0)+(tx.donation||0), 0);
+  const el = document.getElementById('today-total');
+  if (el) el.textContent = fmtCurrency(todayTotal);
+}
+
+// ===== TRANSACTIONS =====
+function renderTransactions() {
+  const period = document.getElementById('tx-period')?.value || 'all';
+  const cat = document.getElementById('tx-category')?.value || 'all';
+  const method = document.getElementById('tx-method')?.value || 'all';
+  const q = (document.getElementById('tx-search')?.value || '').toLowerCase();
+
+  let txs = [...state.transactions].sort((a, b) => new Date(b.date) - new Date(a.date));
+  if (period !== 'all') txs = txs.filter(tx => txInPeriod(tx, period));
+  if (cat !== 'all') txs = txs.filter(tx => (tx[cat] || 0) > 0);
+  if (method !== 'all') txs = txs.filter(tx => tx.method === method);
+  if (q) txs = txs.filter(tx => tx.titheNum.toLowerCase().includes(q) || tx.memberName.toLowerCase().includes(q));
+
+  document.getElementById('tx-tbody').innerHTML = txs.map(tx => {
+    const total = (tx.tithe||0)+(tx.offertory||0)+(tx.building||0)+(tx.donation||0);
+    return `<tr>
+      <td>${fmtDate(tx.date)}</td>
+      <td><span class="tithe-num">${tx.titheNum}</span></td>
+      <td>${tx.memberName}</td>
+      <td>${tx.tithe ? fmtCurrency(tx.tithe) : '—'}</td>
+      <td>${tx.offertory ? fmtCurrency(tx.offertory) : '—'}</td>
+      <td>${tx.building ? fmtCurrency(tx.building) : '—'}</td>
+      <td>${tx.donation ? fmtCurrency(tx.donation) : '—'}</td>
+      <td style="font-weight:600">${fmtCurrency(total)}</td>
+      <td><span class="status-badge ${tx.method === 'cash' ? 'status-active' : 'status-inactive'}">${tx.method}</span></td>
+      <td><button class="action-btn danger" onclick="deleteTransaction('${tx.id}')">🗑️</button></td>
+    </tr>`;
+  }).join('') || '<tr><td colspan="10" style="text-align:center;color:#5A584E;padding:32px">No transactions found</td></tr>';
+}
+
+function filterTransactions() { renderTransactions(); }
+
+function deleteTransaction(id) {
+  if (!confirm('Delete this transaction?')) return;
+  state.transactions = state.transactions.filter(t => t.id !== id);
+  saveLocal();
+  renderTransactions();
+  showToast('Transaction deleted', 'success');
+}
+
+function exportTransactions() {
+  const rows = [['Date','Tithe No.','Member','Tithe','Offertory','Building','Donation','Total','Method','Notes']];
+  state.transactions.forEach(tx => {
+    const total = (tx.tithe||0)+(tx.offertory||0)+(tx.building||0)+(tx.donation||0);
+    rows.push([tx.date, tx.titheNum, tx.memberName, tx.tithe||0, tx.offertory||0, tx.building||0, tx.donation||0, total, tx.method, tx.notes||'']);
+  });
+  downloadCSV(rows, 'transactions_' + today() + '.csv');
+}
+
+// ===== MOBILE MONEY =====
+function renderMobileMoney() {
+  const tbody = document.getElementById('mm-tbody');
+  if (!tbody) return;
+  tbody.innerHTML = state.mobileMoney.map(mm => `
+    <tr>
+      <td>${mm.datetime}</td>
+      <td>${mm.sender}</td>
+      <td>${mm.phone}</td>
+      <td style="font-family:'DM Mono',monospace">${fmtCurrency(mm.amount)}</td>
+      <td><span class="tithe-num">${mm.titheNum}</span></td>
+      <td>${mm.category}</td>
+      <td><span class="mm-status mm-${mm.status}">${mm.status}</span></td>
+    </tr>
+  `).join('') || '<tr><td colspan="7" style="text-align:center;color:#5A584E;padding:32px">No mobile money transactions</td></tr>';
+}
+
+function exportMM() {
+  const rows = [['Date/Time','Sender','Phone','Amount','Tithe No.','Category','Status']];
+  state.mobileMoney.forEach(mm => rows.push([mm.datetime, mm.sender, mm.phone, mm.amount, mm.titheNum, mm.category, mm.status]));
+  downloadCSV(rows, 'mobile_money_' + today() + '.csv');
+}
+
+// ===== REPORTS =====
+function generateMemberReport() {
+  const report = state.members.map(m => {
+    const txs = state.transactions.filter(tx => tx.titheNum === m.titheNum);
+    const totals = txs.reduce((s, tx) => ({ tithe: s.tithe+(tx.tithe||0), offertory: s.offertory+(tx.offertory||0), building: s.building+(tx.building||0), donation: s.donation+(tx.donation||0) }), { tithe:0, offertory:0, building:0, donation:0 });
+    const grand = totals.tithe+totals.offertory+totals.building+totals.donation;
+    return { ...m, ...totals, total: grand };
+  });
+  showReportPreview('Member Giving Statements (YTD)', report.map(r =>
+    `<tr><td>${r.titheNum}</td><td>${r.name}</td><td>${fmtCurrency(r.tithe)}</td><td>${fmtCurrency(r.offertory)}</td><td>${fmtCurrency(r.building)}</td><td>${fmtCurrency(r.donation)}</td><td style="font-weight:600">${fmtCurrency(r.total)}</td></tr>`
+  ).join(''), ['Tithe No.','Name','Tithe','Offertory','Building','Donation','Total']);
+}
+
+function generateSundayReport() {
+  const today = new Date();
+  const sunday = new Date(today);
+  sunday.setDate(today.getDate() - today.getDay());
+  const sunStr = sunday.toISOString().split('T')[0];
+  const txs = state.transactions.filter(tx => tx.date >= sunStr);
+  showReportPreview('Sunday Collection Report', txs.map(tx => {
+    const total = (tx.tithe||0)+(tx.offertory||0)+(tx.building||0)+(tx.donation||0);
+    return `<tr><td>${tx.date}</td><td>${tx.titheNum}</td><td>${tx.memberName}</td><td>${fmtCurrency(total)}</td><td>${tx.method}</td></tr>`;
+  }).join(''), ['Date','Tithe No.','Member','Total','Method']);
+}
+
+function generateMonthlyReport() {
+  const now = new Date();
+  const txs = state.transactions.filter(tx => {
+    const d = new Date(tx.date);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  });
+  showReportPreview('Monthly Summary Report — ' + now.toLocaleDateString('en', {month:'long', year:'numeric'}), txs.map(tx => {
+    const total = (tx.tithe||0)+(tx.offertory||0)+(tx.building||0)+(tx.donation||0);
+    return `<tr><td>${tx.date}</td><td>${tx.titheNum}</td><td>${tx.memberName}</td><td>${fmtCurrency(tx.tithe)}</td><td>${fmtCurrency(tx.offertory)}</td><td>${fmtCurrency(tx.building)}</td><td>${fmtCurrency(tx.donation)}</td><td>${fmtCurrency(total)}</td></tr>`;
+  }).join(''), ['Date','Tithe No.','Member','Tithe','Offertory','Building','Donation','Total']);
+}
+
+function generateYTDReport() {
+  const now = new Date();
+  const txs = state.transactions.filter(tx => new Date(tx.date).getFullYear() === now.getFullYear());
+  showReportPreview('Year-to-Date Report ' + now.getFullYear(), txs.map(tx => {
+    const total = (tx.tithe||0)+(tx.offertory||0)+(tx.building||0)+(tx.donation||0);
+    return `<tr><td>${tx.date}</td><td>${tx.titheNum}</td><td>${tx.memberName}</td><td>${fmtCurrency(total)}</td><td>${tx.method}</td></tr>`;
+  }).join(''), ['Date','Tithe No.','Member','Total','Method']);
+}
+
+function showReportPreview(title, rows, headers) {
+  document.getElementById('report-preview-title').textContent = title;
+  document.getElementById('report-content').innerHTML = `
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead><tr>${headers.map(h => `<th>${h}</th>`).join('')}</tr></thead>
+        <tbody>${rows || '<tr><td colspan="${headers.length}" style="text-align:center;color:#5A584E;padding:20px">No data</td></tr>'}</tbody>
+      </table>
+    </div>`;
+  document.getElementById('report-preview').classList.remove('hidden');
+  window._reportTitle = title;
+  window._reportRows = rows;
+  window._reportHeaders = headers;
+}
+
+function downloadReport() {
+  const rows = [window._reportHeaders];
+  document.querySelectorAll('#report-content tbody tr').forEach(tr => {
+    rows.push(Array.from(tr.querySelectorAll('td')).map(td => td.textContent.trim()));
+  });
+  downloadCSV(rows, window._reportTitle.replace(/[^a-z0-9]/gi, '_') + '_' + today() + '.csv');
+}
+
+function closeReport() { document.getElementById('report-preview').classList.add('hidden'); }
+
+// ===== SETTINGS =====
+function saveSettings() {
+  showToast('Settings saved', 'success');
+}
+function saveIntegration() {
+  const url = document.getElementById('script-url').value.trim();
+  CONFIG.SCRIPT_URL = url;
+  CONFIG.SHEET_ID = document.getElementById('sheet-id').value.trim();
+  const el = document.getElementById('connection-status');
+  el.classList.remove('hidden');
+  if (url) {
+    el.className = 'connection-status connection-ok';
+    el.textContent = '✓ Integration URL saved. Test connection from Google Apps Script.';
+  } else {
+    el.className = 'connection-status connection-fail';
+    el.textContent = '✗ Please enter a valid Apps Script URL.';
+  }
+}
+function changePassword() {
+  const curr = document.getElementById('curr-pass').value;
+  const newp = document.getElementById('new-pass').value;
+  const conf = document.getElementById('confirm-pass').value;
+  const stored = localStorage.getItem('tithepro_pass') || CONFIG.ADMIN_PASS;
+  if (curr !== stored) { showToast('Current password is incorrect', 'error'); return; }
+  if (newp.length < 6) { showToast('Password must be at least 6 characters', 'error'); return; }
+  if (newp !== conf) { showToast('Passwords do not match', 'error'); return; }
+  localStorage.setItem('tithepro_pass', newp);
+  showToast('Password updated successfully', 'success');
+  ['curr-pass','new-pass','confirm-pass'].forEach(id => document.getElementById(id).value = '');
+}
+function updateSettings() {
+  const assigned = state.members.length;
+  const avail = CONFIG.TITHE_POOL_SIZE - assigned;
+  document.getElementById('pool-assigned').textContent = assigned;
+  document.getElementById('pool-available').textContent = avail;
+  document.getElementById('pool-fill').style.width = (assigned / CONFIG.TITHE_POOL_SIZE * 100) + '%';
+}
+
+// ===== MODALS =====
+function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+
+// ===== TOAST =====
+function showToast(msg, type) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast ' + (type || '');
+  t.classList.remove('hidden');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => t.classList.add('hidden'), 3000);
+}
+
+// ===== CSV DOWNLOAD =====
+function downloadCSV(rows, filename) {
+  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = filename;
+  a.click();
+}
+
+function today() {
+  return new Date().toISOString().split('T')[0];
+}
+
+// ===== CLOSE DROPDOWNS ON OUTSIDE CLICK =====
+document.addEventListener('click', e => {
+  if (!e.target.closest('.form-group')) {
+    document.getElementById('member-suggestion')?.classList.add('hidden');
+  }
+  if (!e.target.closest('.sidebar') && !e.target.closest('.menu-toggle')) {
+    closeSidebar();
+  }
+});
+
+</script>
+</body>
+</html>
